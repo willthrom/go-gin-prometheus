@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	log "github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 )
 
 var defaultMetricPath = "/metrics"
@@ -121,8 +121,21 @@ type PrometheusPushGateway struct {
 	Job string
 }
 
+var log *zap.SugaredLogger
+
+func NewPrometheusZap(subsystem string, logger *zap.SugaredLogger, customMetricsList ...[]*Metric) *Prometheus {
+	log = logger
+	return NewPrometheus(subsystem, customMetricsList...)
+}
+
 // NewPrometheus generates a new set of metrics with a certain subsystem name
 func NewPrometheus(subsystem string, customMetricsList ...[]*Metric) *Prometheus {
+
+	if log == nil {
+		logger, _ := zap.NewProduction()
+		log = logger.Sugar()
+		// Missing flusing when closed logger.Sync() TODO
+	}
 
 	var metricsList []*Metric
 
@@ -231,7 +244,7 @@ func (p *Prometheus) sendMetricsToPushGateway(metrics []byte) {
 	req, err := http.NewRequest("POST", p.getPushGatewayURL(), bytes.NewBuffer(metrics))
 	client := &http.Client{}
 	if _, err = client.Do(req); err != nil {
-		log.WithError(err).Errorln("Error sending to push gateway")
+		log.Errorf("Error sending to push gateway: %s", err.Error())
 	}
 }
 
@@ -325,7 +338,7 @@ func (p *Prometheus) registerMetrics(subsystem string) {
 	for _, metricDef := range p.MetricsList {
 		metric := NewMetric(metricDef, subsystem)
 		if err := prometheus.Register(metric); err != nil {
-			log.WithError(err).Errorf("%s could not be registered in Prometheus", metricDef.Name)
+			log.Errorf("%s %s could not be registered in Prometheus", err.Error(), metricDef.Name)
 		}
 		switch metricDef {
 		case reqCnt:
