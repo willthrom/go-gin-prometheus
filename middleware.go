@@ -32,6 +32,7 @@ var reqDur = &Metric{
 	Description: "The HTTP request latencies in seconds.",
 	Type:        "histogram_vec",
 	Args:        []string{"code", "method", "url"},
+	Buckets:     []float64{0.300, 0.500, 0.700, 1}
 }
 
 var resSz = &Metric{
@@ -83,6 +84,7 @@ type Metric struct {
 	Description     string
 	Type            string
 	Args            []string
+	Buckets         []float64
 }
 
 // Prometheus contains the metrics gathered by the instance and its path
@@ -301,6 +303,7 @@ func NewMetric(m *Metric, subsystem string) prometheus.Collector {
 				Subsystem: subsystem,
 				Name:      m.Name,
 				Help:      m.Description,
+				Buckets:   m.Buckets
 			},
 			m.Args,
 		)
