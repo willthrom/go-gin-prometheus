@@ -32,7 +32,7 @@ var reqDur = &Metric{
 	Description: "The HTTP request latencies in seconds.",
 	Type:        "histogram_vec",
 	Args:        []string{"code", "method", "url"},
-	Buckets:     []float64{0.300, 0.500, 0.700, 1}
+	Buckets:     []float64{0.100, 0.500, 1}
 }
 
 var resSz = &Metric{
@@ -303,7 +303,7 @@ func NewMetric(m *Metric, subsystem string) prometheus.Collector {
 				Subsystem: subsystem,
 				Name:      m.Name,
 				Help:      m.Description,
-				Buckets:   m.Buckets
+				Buckets:   m.Buckets,
 			},
 			m.Args,
 		)
@@ -312,7 +312,8 @@ func NewMetric(m *Metric, subsystem string) prometheus.Collector {
 			prometheus.HistogramOpts{
 				Subsystem: subsystem,
 				Name:      m.Name,
-				Help:      m.Description,
+				Help:      m.Description,				
+				Buckets:   m.Buckets,
 			},
 		)
 	case "summary_vec":
