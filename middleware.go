@@ -32,7 +32,7 @@ var reqDur = &Metric{
 	Description: "The HTTP request latencies in seconds.",
 	Type:        "histogram_vec",
 	Args:        []string{"code", "method", "url"},	
-	Buckets:     []float64{0.300, 0.700, 1, 10},
+	Buckets:     []float64{0.50, 0.100, 0.300, 0.600, 1, 2, 5},
 }
 
 var resSz = &Metric{
